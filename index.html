@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Shaunak Lavande">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+    integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+    integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+    crossorigin=""></script>
+    <link rel ="stylesheet" href="styles.css"/>
+    <title>Document</title>
+</head>
+<body>
+    <!-- 
+    API : https://api.wheretheiss.at/v1/satellites/25544 
+    Leaflet.js: https://leafletjs.com/
+    Street Map: https://www.openstreetmap.org/#map=4/38.01/-95.84
+    -->
+    <h1> Where is the ISS? </h1>
+    <p id="location">
+        Longitude: <span id = "lon"></span>° <br />
+        Latitude: <span id = "lat"></span>° <br />
+        Altitude: <span id = "alt"></span> miles <br />
+        Velocity: <span id = "vel"></span> mph <br />
+    </p>
+    <div id="mapid"></div>
+    <p id="link">
+        <a href="https://wheretheiss.at/w/developer">API</a>
+        <a href="https://leafletjs.com/">Leaflet.js</a>
+        <a href="https://www.openstreetmap.org/#map=4/38.01/-95.84">OpenStreetMap</a>
+        <a href="http://freepngimages.com/international-space-station-transparent-background/">ISS Image</a>    
+    </p>
+
+   
+    <p id="author">
+        Developer: Shaunak Lavande &nbsp;&nbsp;&nbsp;
+    </p>
+
+    <script>
+        // makes the map and tiles
+        const mymap = L.map('mapid').setView([0, 0], 1);
+        const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+        api_url = 'https://api.wheretheiss.at/v1/satellites/25544/?units=miles';
+        tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const tiles = L.tileLayer(tileUrl, { attribution });
+        tiles.addTo(mymap);
+
+        // makes a marker that pinpoints the current location of the ISS icon
+
+        var issIcon = L.icon({
+            iconUrl: 'Spa.png',
+            iconSize: [50, 50],
+            iconAnchor: [25, 16]
+        });
+        const icon = L.marker([0, 0], { icon: issIcon }).addTo(mymap);
+        let firstTime = true;
+        //gets data from api and updates text content
+        async function issTracker() {
+            const response = await fetch(api_url);
+            const data = await response.json();
+            const { latitude, longitude, altitude, velocity } = data;
+            icon.setLatLng([latitude, longitude]);
+            if(firstTime) {
+                mymap.setView([latitude, longitude], 5);
+                firstTime = false;
+            }
+            document.getElementById("lon").textContent = longitude.toFixed(2);
+            document.getElementById("lat").textContent = latitude.toFixed(2);
+            document.getElementById("alt").textContent = altitude.toFixed(2);
+            document.getElementById("vel").textContent = velocity.toFixed(2);
+        }
+        issTracker();
+
+        setInterval(issTracker, 1000);
+    </script>
+</body>
+</html>
